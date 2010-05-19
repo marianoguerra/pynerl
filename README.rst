@@ -29,3 +29,21 @@ an example session::
         9> pynerl:eval("t = 2.3", "t"). 
         2.3
 
+Information
+-----------
+
+This is just an experiment, some of the code may be usable for other things but
+as the documentation on NIFs says::
+
+        Avoid doing lengthy work in NIF calls as that may degrade the
+        responsiveness of the VM. NIFs are called directly by the same
+        scheduler thread that executed the calling Erlang code. The calling
+        scheduler will thus be blocked from doing any other work until the NIF
+        returns.
+
+That means that you shouldn't run a really long python method with it since it would
+block the scheduler.
+
+I may try to make something similar to `erlectricity`__
+
+__ http://github.com/mojombo/erlectricity/
