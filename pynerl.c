@@ -17,6 +17,7 @@ static PyObject* pynerl_term_to_obj(ErlNifEnv* env, ERL_NIF_TERM term) {
 	double vdouble;
 	char buff[BUFF_SIZE];
 	PyObject* obj;
+	ERL_NIF_TERM list, head, tail;
 
 	// TODO: add more types
 	if (enif_get_long(env, term, &vlong)) {
@@ -27,6 +28,15 @@ static PyObject* pynerl_term_to_obj(ErlNifEnv* env, ERL_NIF_TERM term) {
 	}
 	else if (enif_get_string(env, term, buff, BUFF_SIZE, ERL_NIF_LATIN1)) {
 		obj = PyUnicode_FromString(buff);
+	}
+	else if (enif_get_list_cell(env, term, &head, &tail)) {
+		obj = PyList_New(0);
+		list = term;
+
+		while (enif_get_list_cell(env, list, &head, &tail)) {
+			PyList_Append(obj, pynerl_term_to_obj(env, head));
+			list = tail;
+		}
 	}
 	else {
 		obj = Py_None;
@@ -51,6 +61,10 @@ static ERL_NIF_TERM pynerl_obj_to_term(ErlNifEnv* env, PyObject* obj) {
 	}
 	else if (PyFloat_Check(obj)) {
 		term = enif_make_double(env, PyFloat_AsDouble(obj));
+	}
+	else if (PyBytes_Check(obj)) {
+		// XXX: the encoding must be latin1
+		term = enif_make_string(env, PyBytes_AsString(obj), ERL_NIF_LATIN1);
 	}
 	else if (PyUnicode_Check(obj)) {
 		// XXX: the encoding must be latin1
@@ -91,10 +105,9 @@ static ERL_NIF_TERM pynerl_eval(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
 		enif_get_string(env, argv[1], buff, BUFF_SIZE, ERL_NIF_LATIN1);
 		pval = PyDict_GetItemString(pdict, buff);
 		eResult = pynerl_obj_to_term(env, pval);
-		Py_DECREF(pval);
+		Py_DECREF(pResult);
 	}
 
-	Py_DECREF(pResult);
 	Py_DECREF(pdict);
 
 	Py_Finalize();
@@ -107,7 +120,7 @@ static ERL_NIF_TERM pynerl_call(ErlNifEnv* env, int arc, const ERL_NIF_TERM argv
 
 	int size;
 	char buff[BUFF_SIZE];
-	PyObject *pModName, *pModule, *pFunc, *pArgs, *pValue;
+	PyObject *pModName, *pModule, *pFunc, *pArgs, *pArgList, *pValue;
 	ERL_NIF_TERM eResult;
 
 	pModName = pynerl_term_to_obj(env, argv[0]);
@@ -119,11 +132,12 @@ static ERL_NIF_TERM pynerl_call(ErlNifEnv* env, int arc, const ERL_NIF_TERM argv
 		// TODO: error checking
 		enif_get_string(env, argv[1], buff, BUFF_SIZE, ERL_NIF_LATIN1);
 		pFunc = PyObject_GetAttrString(pModule, buff);
-        /* pFunc is a new reference */
 
         if (pFunc && PyCallable_Check(pFunc)) {
-			// TODO: create the tuple with the arguments
-            pArgs = PyTuple_New(0);
+			pArgList = pynerl_term_to_obj(env, argv[2]);
+
+            pArgs = PyList_AsTuple(pArgList);
+			Py_DECREF(pArgList);
 			pValue = PyObject_CallObject(pFunc, pArgs);
 			Py_DECREF(pArgs);
 
