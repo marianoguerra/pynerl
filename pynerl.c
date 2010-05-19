@@ -77,6 +77,7 @@ static ERL_NIF_TERM pynerl_obj_to_term(ErlNifEnv* env, PyObject* obj) {
 		term = enif_make_atom(env, "true");
 	}
 	else if (PyLong_Check(obj)) {
+		// TODO: make ints when the size allows to.
 		term = enif_make_long(env, PyLong_AsLong(obj));
 	}
 	else if (PyFloat_Check(obj)) {
@@ -98,7 +99,17 @@ static ERL_NIF_TERM pynerl_obj_to_term(ErlNifEnv* env, PyObject* obj) {
 	}
 	else if (PyUnicode_Check(obj)) {
 		// XXX: the encoding must be latin1
-		term = enif_make_string(env, PyUnicode_AS_DATA(obj), ERL_NIF_LATIN1);
+		term = enif_make_string(env, PyBytes_AsString(PyUnicode_AsLatin1String(obj)), ERL_NIF_LATIN1);
+	}
+	else if (PyList_Check(obj)) {
+		Py_ssize_t i, arity = PyList_Size(obj);
+		ERL_NIF_TERM *terms = (ERL_NIF_TERM*) malloc(sizeof(ERL_NIF_TERM) * (int)arity);
+
+		for (i = 0; i < arity; i++) {
+			terms[(int)i] = pynerl_obj_to_term(env, PyList_GetItem(obj, i));
+		}
+
+		term = enif_make_list_from_array(env, terms, (unsigned int)arity);
 	}
 	else if (obj == Py_None) {
 		term = enif_make_atom(env, "none");
