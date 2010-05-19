@@ -1,5 +1,5 @@
 -module(pynerl).
--export([init/0, eval/2, call/3]).
+-export([init/0, eval/2, call/3, exec/1]).
 
 -on_load(init/0).
 
@@ -10,5 +10,8 @@ eval(_Str, _Var) ->
       "NIF library not loaded".
 
 call(_Module, _Function, _Args) ->
+      "NIF library not loaded".
+
+exec(_FilePath) ->
       "NIF library not loaded".
 
