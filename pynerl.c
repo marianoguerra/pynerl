@@ -13,11 +13,14 @@ static ERL_NIF_TERM pynerl_make_error(ErlNifEnv* env, const char* type, const ch
 // convert an erlang term to a python object
 // return None if the type can't be converted
 static PyObject* pynerl_term_to_obj(ErlNifEnv* env, ERL_NIF_TERM term) {
+	int vint;
+	Py_ssize_t arity, i;
 	long int vlong;
 	double vdouble;
 	char buff[BUFF_SIZE];
 	PyObject* obj;
 	ERL_NIF_TERM list, head, tail;
+	const ERL_NIF_TERM *terms;
 
 	// TODO: add more types
 	if (enif_get_long(env, term, &vlong)) {
@@ -25,6 +28,17 @@ static PyObject* pynerl_term_to_obj(ErlNifEnv* env, ERL_NIF_TERM term) {
 	}
 	else if (enif_get_double(env, term, &vdouble)) {
 		obj = PyFloat_FromDouble(vlong);
+	}
+	else if (enif_is_empty_list(env, term)) {
+		obj = PyList_New(0);
+	}
+	else if (enif_get_tuple(env, term, &vint, &terms)) {
+		arity = vint;
+		obj = PyTuple_New(arity);
+
+		for (i = 0; i < arity; i++) {
+			PyTuple_SetItem(obj, i, pynerl_term_to_obj(env, terms[(int)i]));
+		}
 	}
 	else if (enif_is_identical(env, term, enif_make_atom(env, "true"))) {
 		obj = Py_True;
@@ -68,6 +82,16 @@ static ERL_NIF_TERM pynerl_obj_to_term(ErlNifEnv* env, PyObject* obj) {
 	else if (PyFloat_Check(obj)) {
 		term = enif_make_double(env, PyFloat_AsDouble(obj));
 	}
+	else if (PyTuple_Check(obj)) {
+		Py_ssize_t i, arity = PyTuple_Size(obj);
+		ERL_NIF_TERM *terms = (ERL_NIF_TERM*) malloc(sizeof(ERL_NIF_TERM) * (int)arity);
+
+		for (i = 0; i < arity; i++) {
+			terms[(int)i] = pynerl_obj_to_term(env, PyTuple_GetItem(obj, i));
+		}
+
+		term = enif_make_tuple_from_array(env, terms, (unsigned int)arity);
+	}
 	else if (PyBytes_Check(obj)) {
 		// XXX: the encoding must be latin1
 		term = enif_make_string(env, PyBytes_AsString(obj), ERL_NIF_LATIN1);
@@ -105,7 +129,6 @@ static ERL_NIF_TERM pynerl_eval(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
 
 	if (pResult == NULL) {
 		eResult = pynerl_make_error(env, "exception", "Exception while running eval");
-		PyErr_Print();
 	}
 	else {
 		enif_get_string(env, argv[1], buff, BUFF_SIZE, ERL_NIF_LATIN1);
