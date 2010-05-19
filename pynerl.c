@@ -26,6 +26,12 @@ static PyObject* pynerl_term_to_obj(ErlNifEnv* env, ERL_NIF_TERM term) {
 	else if (enif_get_double(env, term, &vdouble)) {
 		obj = PyFloat_FromDouble(vlong);
 	}
+	else if (enif_is_identical(env, term, enif_make_atom(env, "true"))) {
+		obj = Py_True;
+	}
+	else if (enif_is_identical(env, term, enif_make_atom(env, "false"))) {
+		obj = Py_False;
+	}
 	else if (enif_get_string(env, term, buff, BUFF_SIZE, ERL_NIF_LATIN1)) {
 		obj = PyUnicode_FromString(buff);
 	}
