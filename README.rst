@@ -1,6 +1,15 @@
 pynerl
 ======
 
+
+status
+------
+
+I would really like to finish this, but for now it's on hold, if you would like to help, fork it and send pull requests.
+
+about
+-----
+
 pynerl is a set of NIFs that allow to run python code from erlang
 
 the NIFs embed python and allow to run eval and call functions.
