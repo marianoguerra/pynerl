@@ -40,10 +40,10 @@ static PyObject* pynerl_term_to_obj(ErlNifEnv* env, ERL_NIF_TERM term) {
 			PyTuple_SetItem(obj, i, pynerl_term_to_obj(env, terms[(int)i]));
 		}
 	}
-	else if (enif_is_identical(env, term, enif_make_atom(env, "true"))) {
+	else if (enif_is_identical(term, enif_make_atom(env, "true"))) {
 		obj = Py_True;
 	}
-	else if (enif_is_identical(env, term, enif_make_atom(env, "false"))) {
+	else if (enif_is_identical(term, enif_make_atom(env, "false"))) {
 		obj = Py_False;
 	}
 	else if (enif_get_string(env, term, buff, BUFF_SIZE, ERL_NIF_LATIN1)) {

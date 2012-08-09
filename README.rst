@@ -56,3 +56,26 @@ block the scheduler.
 I may try to make something similar to `erlectricity`__
 
 __ http://github.com/mojombo/erlectricity/
+
+or erlv8_
+
+.. _erlv8:: https://github.com/beamjs/erlv8/wiki/Using-erlv8
+
+building
+--------
+
+you will need a compiler, erlang dev files and python dev files, in debian
+based systems you get them with::
+
+    sudo apt-get install python3-dev erlang-dev build-essential
+
+after that you may have to check that the paths in build.sh are the corrects
+for you, specially this two:
+
+ * /usr/lib/erlang/erts-5.8.5/include/
+ * /usr/include/python3.2/ 
+
+if you have another version of erlang or python just change them on build.sh
+
+if it gives some linker error check the *-lpython3.2mu* and change it to fit
+(maybe -lpython3.2)
