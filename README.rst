@@ -55,11 +55,11 @@ block the scheduler.
 
 I may try to make something similar to `erlectricity`__
 
-__ http://github.com/mojombo/erlectricity/
-
 or erlv8_
 
-.. _erlv8:: https://github.com/beamjs/erlv8/wiki/Using-erlv8
+__ http://github.com/mojombo/erlectricity/
+
+.. _erlv8: https://github.com/beamjs/erlv8/wiki/Using-erlv8
 
 building
 --------
@@ -72,8 +72,8 @@ based systems you get them with::
 after that you may have to check that the paths in build.sh are the corrects
 for you, specially this two:
 
- * /usr/lib/erlang/erts-5.8.5/include/
- * /usr/include/python3.2/ 
+* /usr/lib/erlang/erts-5.8.5/include/
+* /usr/include/python3.2/ 
 
 if you have another version of erlang or python just change them on build.sh
 
